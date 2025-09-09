@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Catalog</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#6366f1", // indigo
+            secondary: "#10b981", // emerald
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-4xl">
+    <!-- Title -->
+    <h1 class="text-4xl font-extrabold mb-8 text-center text-primary tracking-wide">
+      Movie Catalog
+    </h1>
+    
+    <!-- Form -->
+    <form id="movieForm" 
+      class="bg-gray-800/70 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-gray-700 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="title" placeholder="Title" 
+          class="bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"/>
+        <input id="director" placeholder="Director" 
+          class="bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"/>
+        <input id="genre" placeholder="Genre" 
+          class="bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"/>
+        <input id="release_year" type="number" placeholder="Release Year" 
+          class="bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"/>
+        <input id="rating" type="number" step="0.1" placeholder="Rating" 
+          class="bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+
+      <div class="mt-4 flex gap-3">
+        <button type="submit" id="formBtn" 
+          class="flex-1 bg-primary hover:bg-indigo-600 transition px-4 py-2 rounded-lg font-semibold shadow-md">
+          Add Movie
+        </button>
+        <button type="button" id="cancelBtn" 
+          class="hidden flex-1 bg-gray-600 hover:bg-gray-500 transition px-4 py-2 rounded-lg font-semibold">
+          Cancel
+        </button>
+      </div>
+    </form>
+
+    <!-- Movie List -->
+    <div id="moviesList" class="space-y-4"></div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:5000/movies";
+    const moviesList = document.getElementById("moviesList");
+    const form = document.getElementById("movieForm");
+    const formBtn = document.getElementById("formBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+
+    let editMode = false;
+    let editId = null;
+
+    // Fetch movies
+    async function loadMovies() {
+      const res = await fetch(API_URL);
+      const movies = await res.json();
+      moviesList.innerHTML = "";
+      movies.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "p-5 bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl shadow-lg flex justify-between items-center hover:scale-[1.01] transition";
+        div.innerHTML = `
+          <div>
+            <h2 class="font-bold text-xl text-secondary">${m.title}</h2>
+            <p class="text-gray-400">${m.director} • ${m.genre} • ${m.release_year} • ⭐ ${m.rating}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="editMovie(${m.id}, '${m.title}', '${m.director}', '${m.genre}', ${m.release_year}, ${m.rating})" 
+              class="bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded-lg font-medium transition">Edit</button>
+            <button onclick="deleteMovie(${m.id})" 
+              class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg font-medium transition">Delete</button>
+          </div>
+        `;
+        moviesList.appendChild(div);
+      });
+    }
+
+    // Add / Update movie
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const movieData = {
+        title: form.title.value,
+        director: form.director.value,
+        genre: form.genre.value,
+        release_year: form.release_year.value,
+        rating: form.rating.value
+      };
+
+      if (!editMode) {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(movieData)
+        });
+      } else {
+        await fetch(`${API_URL}/${editId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(movieData)
+        });
+        editMode = false;
+        editId = null;
+        formBtn.textContent = "Add Movie";
+        formBtn.className = "flex-1 bg-primary hover:bg-indigo-600 transition px-4 py-2 rounded-lg font-semibold shadow-md";
+        cancelBtn.classList.add("hidden");
+      }
+
+      form.reset();
+      loadMovies();
+    });
+
+    // Delete movie
+    async function deleteMovie(id) {
+      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      loadMovies();
+    }
+
+    // Edit movie
+    function editMovie(id, title, director, genre, release_year, rating) {
+      form.title.value = title;
+      form.director.value = director;
+      form.genre.value = genre;
+      form.release_year.value = release_year;
+      form.rating.value = rating;
+
+      editMode = true;
+      editId = id;
+      formBtn.textContent = "Update Movie";
+      formBtn.className = "flex-1 bg-secondary hover:bg-emerald-500 transition px-4 py-2 rounded-lg font-semibold shadow-md";
+      cancelBtn.classList.remove("hidden");
+    }
+
+    // Cancel edit
+    cancelBtn.addEventListener("click", () => {
+      editMode = false;
+      editId = null;
+      form.reset();
+      formBtn.textContent = "Add Movie";
+      formBtn.className = "flex-1 bg-primary hover:bg-indigo-600 transition px-4 py-2 rounded-lg font-semibold shadow-md";
+      cancelBtn.classList.add("hidden");
+    });
+
+    loadMovies();
+  </script>
+</body>
+</html>
