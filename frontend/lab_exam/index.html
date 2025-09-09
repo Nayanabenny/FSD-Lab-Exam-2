@@ -10,8 +10,8 @@
       theme: {
         extend: {
           colors: {
-            primary: "#6366f1", // indigo
-            secondary: "#10b981", // emerald
+            primary: "#6366f1", 
+            secondary: "#10b981", 
           }
         }
       }
@@ -20,12 +20,12 @@
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-6">
   <div class="w-full max-w-4xl">
-    <!-- Title -->
+    
     <h1 class="text-4xl font-extrabold mb-8 text-center text-primary tracking-wide">
       Movie Catalog
     </h1>
     
-    <!-- Form -->
+    
     <form id="movieForm" 
       class="bg-gray-800/70 backdrop-blur-lg p-6 rounded-2xl shadow-lg border border-gray-700 mb-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -53,7 +53,7 @@
       </div>
     </form>
 
-    <!-- Movie List -->
+    
     <div id="moviesList" class="space-y-4"></div>
   </div>
 
@@ -67,7 +67,7 @@
     let editMode = false;
     let editId = null;
 
-    // Fetch movies
+   
     async function loadMovies() {
       const res = await fetch(API_URL);
       const movies = await res.json();
@@ -91,7 +91,7 @@
       });
     }
 
-    // Add / Update movie
+    
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const movieData = {
@@ -125,13 +125,13 @@
       loadMovies();
     });
 
-    // Delete movie
+    
     async function deleteMovie(id) {
       await fetch(`${API_URL}/${id}`, { method: "DELETE" });
       loadMovies();
     }
 
-    // Edit movie
+
     function editMovie(id, title, director, genre, release_year, rating) {
       form.title.value = title;
       form.director.value = director;
@@ -146,7 +146,7 @@
       cancelBtn.classList.remove("hidden");
     }
 
-    // Cancel edit
+    
     cancelBtn.addEventListener("click", () => {
       editMode = false;
       editId = null;

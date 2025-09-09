@@ -6,11 +6,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database connection
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',     // change if needed
-  password: '',     // add your MySQL password
+  user: 'root',     
+  password: '',     
   database: 'movie_db'
 });
 
@@ -19,9 +18,7 @@ db.connect(err => {
   console.log('✅ Connected to MySQL Database');
 });
 
-// Routes
 
-// Get all movies
 app.get('/movies', (req, res) => {
   db.query('SELECT * FROM movies', (err, results) => {
     if (err) return res.status(500).json(err);
@@ -29,7 +26,6 @@ app.get('/movies', (req, res) => {
   });
 });
 
-// Add a new movie
 app.post('/movies', (req, res) => {
   const { title, director, genre, release_year, rating } = req.body;
   db.query(
@@ -42,7 +38,6 @@ app.post('/movies', (req, res) => {
   );
 });
 
-// Update movie
 app.put('/movies/:id', (req, res) => {
   const { id } = req.params;
   const { title, director, genre, release_year, rating } = req.body;
@@ -56,7 +51,6 @@ app.put('/movies/:id', (req, res) => {
   );
 });
 
-// Delete movie
 app.delete('/movies/:id', (req, res) => {
   const { id } = req.params;
   db.query('DELETE FROM movies WHERE id=?', [id], (err) => {
@@ -65,7 +59,6 @@ app.delete('/movies/:id', (req, res) => {
   });
 });
 
-// Server start
 app.listen(5000, () => {
   console.log('🚀 Server running on http://localhost:5000');
 });
